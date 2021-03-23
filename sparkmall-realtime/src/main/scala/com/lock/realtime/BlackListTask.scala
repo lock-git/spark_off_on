@@ -27,10 +27,13 @@ object BlackListTask {
     val ssc = new StreamingContext(sparkConf, Seconds(5))
 
     // kafka 消费
-    val kafkaParams = Map(
-      "" -> "",
-      "" -> ""
-    )
+//    val kafkaParams = Map(
+//      "" -> "",
+//      "" -> ""
+//    )
+
+    val kafkaParams = Map[String, String]("metadata.broker.list" -> "ip:port", "auto.offset.reset" -> "largest")
+
 
     val kafkaDStream: InputDStream[ConsumerRecord[String, String]] = KafkaUtils.createDirectStream(ssc,
       LocationStrategies.PreferConsistent, ConsumerStrategies.Subscribe[String, String](Array(topic), kafkaParams))

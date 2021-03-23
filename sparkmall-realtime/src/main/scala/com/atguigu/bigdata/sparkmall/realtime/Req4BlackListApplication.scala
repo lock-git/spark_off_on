@@ -84,6 +84,16 @@ object Req4BlackListApplication {
       (date + "_" + message.adid + "_" + message.userid, 1L)
     })
 
+    //  练习
+    //    val updateFunc: (Seq[Long], Option[Long]) => Some[Long] = (values: Seq[Long], state: Option[Long]) => {
+    //      val total: Long = values.sum + state.getOrElse(0L)
+    //      Some(total)
+    //    }
+    //    dateAdvUserToCountDStream.updateStateByKey(updateFunc)
+    //
+    //    dateAdvUserToCountDStream.updateStateByKey { (a: Seq[Long], b: Option[Long]) => Option(a.sum + b.getOrElse(0L)) }
+    //
+
     // TODO 2. 将转换结构后的数据进行聚合：(date-adv-user, sum)
     val stateDStream: DStream[(String, Long)] = dateAdvUserToCountDStream.updateStateByKey[Long] {
       (seq: Seq[Long], buffer: Option[Long]) => {
