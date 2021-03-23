@@ -1,11 +1,16 @@
 package com.lock.realtime
 
+import java.util
+
+import com.atguigu.bigdata.sparkmall.common.util.RedisUtil
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.spark.SparkConf
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, LocationStrategies}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import redis.clients.jedis.Jedis
 
 /**
   * author  Lock.xia
@@ -35,9 +40,14 @@ object BlackListTask {
     // transform
     val valueDStream: DStream[String] = kafkaDStream.transform { r: RDD[ConsumerRecord[String, String]] =>
       val kafkaStrRDD: RDD[String] = r.map((_: ConsumerRecord[String, String]).value())
+      // 获取黑名单
+      val client: Jedis = RedisUtil.getJedisClient
+      val blackSet: util.Set[String] = client.smembers("black_list")
+      // 放入广播变量
+      val blackSetBroadcast: Broadcast[util.Set[String]] = ssc.sparkContext.broadcast(blackSet)
 
-      kafkaStrRDD
-
+      val filterRDD: RDD[String] = kafkaStrRDD.filter((k: String) => !blackSetBroadcast.value.contains(k))
+      filterRDD
     }
 
 
